@@ -1,0 +1,21 @@
+boto3[crt]>=1.42
+opencv-python>=4.10
+python-dotenv
+google-genai>=2.29
+uvicorn>=0.54
+httpx>=0.28
+pytest>=9.1
+starlette>=1.7
+# Multipart form parsing for people's photos (POST /api/people)
+python-multipart>=0.0.20
+cryptography>=42
+# QR codes for device pairing (BSD-3-Clause, pure Python)
+segno>=1.6
+numpy
+ultralytics>=8.4
+aiortc>=1.15
+# YOLOE's text encoder tokenizes with Ultralytics' CLIP fork (not on PyPI)
+clip @ git+https://github.com/ultralytics/CLIP.git@7ffa84b3bfa40c42ecc1c77147a855e69cb2dd40
+# ByteTrack's linear assignment (Ultralytics installs it at runtime otherwise, which fails without pip)
+lap>=0.5.12
+diagrams==0.25.1

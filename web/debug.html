@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- The core's debug page: cameras (live video, snapshot as fallback), a text box that starts watch orders, the session,
+     its events and the analyser's progress, registered people, paired devices and the newest uploads, for testing the core without
+     the voice side's home screen. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meanwhile core · debug</title>
+  <style>
+    :root { color-scheme: dark; --bg: #0d0f12; --fg: #f2f4f7; --muted: #9aa3ae; --live: #3ecf7a; --off: #e5484d;
+      --warn: #f5b041; --panel: #161a1f; --line: #39404a; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+      font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    h1, h2 { font-size: 18px; margin: 0 0 12px; }
+    h2 { font-size: 15px; margin-top: 20px; color: var(--muted); }
+    #grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .tile { background: var(--panel); border-radius: 10px; overflow: hidden; }
+    .frame { position: relative; }
+    .tile img { display: block; width: 100%; height: auto; background: #000; }
+    .tile img:not([src]) { aspect-ratio: 16 / 9; }
+    .tile.offline img { opacity: .35; }
+    .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; background: #000; display: none; }
+    .tile.streaming .frame video { display: block; }
+    .box { position: absolute; border: 2px solid var(--warn); border-radius: 4px; z-index: 1; }
+    .box.held { border-style: dashed; border-color: var(--fg); }
+    .live-box { position: absolute; border: 2px solid var(--live); border-radius: 3px; z-index: 2; }
+    .live-box.guess { border-style: dashed; }
+    .live-box.held { border-color: var(--fg); }
+    .live-box.missing { border-style: dotted; border-color: var(--off); opacity: .7; }
+    .meta { display: flex; justify-content: space-between; padding: 8px 10px; }
+    .live { color: var(--live); } .offline .state { color: var(--off); }
+    .empty, .err, .muted { color: var(--muted); }
+    form { display: flex; gap: 8px; margin: 8px 0; }
+    input, button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 12px; }
+    input { flex: 1; min-width: 0; }
+    .card { background: var(--panel); border-radius: 10px; padding: 12px; }
+    .card pre { white-space: pre-wrap; margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+    #uploads { list-style: none; padding: 0; margin: 0; font: 13px/1.6 ui-monospace, Consolas, monospace; }
+    #uploads a, #events a { color: var(--fg); }
+    select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+    #events, #people { list-style: none; padding: 0; margin: 0; }
+    #events li { background: var(--panel); border-left: 4px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0; }
+    #events li.heads_up { border-color: var(--warn); } #events li.verdict { border-color: var(--live); }
+    #events li.alert { border-color: var(--off); }
+    #events .when, #people .muted { font-size: 13px; }
+    #people li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0; }
+    #people img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Cameras</h1>
+  <p class="err" id="err"></p>
+  <div id="grid"></div>
+
+  <h2>Watch order</h2>
+  <form id="order-form">
+    <input id="instruction" placeholder="keep an eye on my keys · take notes of who comes into the room" autocomplete="off">
+    <button type="submit">Start</button>
+  </form>
+  <p id="order-reply" class="muted"></p>
+  <div class="card" id="session">No session yet.</div>
+
+  <h2>Events</h2>
+  <p id="analysis" class="muted"></p>
+  <ul id="events"><li class="muted">None yet.</li></ul>
+
+  <h2>People (recognised by face from their photos, or by what they wear)</h2>
+  <form id="person-form">
+    <input id="person-name" placeholder="Name" autocomplete="off">
+    <select id="person-role"><option>owner</option><option selected>helper</option><option>family</option>
+      <option>relative</option><option>friend</option><option>guest</option></select>
+    <input id="person-note" placeholder="what they wear: a red shirt" autocomplete="off">
+    <input id="person-photo" type="file" accept="image/jpeg,image/png" multiple title="Up to 3 photos with their face">
+    <button type="submit">Add</button>
+  </form>
+  <p id="person-reply" class="muted"></p>
+  <p><button type="button" id="remove-unnamed" hidden>Delete all unnamed people</button></p>
+  <ul id="people"><li class="muted">Nobody yet.</li></ul>
+
+  <h2>Paired devices (phones and browsers that connect without the key)</h2>
+  <div id="pairing" class="card"></div>
+
+  <h2>Newest uploads (frames and clips)</h2>
+  <ul id="uploads"><li class="muted">None yet.</li></ul>
+  <script src="js/pairing.js"></script>
+  <script src="js/debug.js"></script>
+</body>
+</html>

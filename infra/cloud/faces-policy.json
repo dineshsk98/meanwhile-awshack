@@ -1,0 +1,22 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "MeanwhileFaceId",
+      "Effect": "Allow",
+      "Action": [
+        "rekognition:IndexFaces",
+        "rekognition:SearchFacesByImage",
+        "rekognition:DeleteFaces",
+        "rekognition:ListFaces"
+      ],
+      "Resource": "arn:aws:rekognition:<region>:<account-id>:collection/<collection>"
+    },
+    {
+      "Sid": "MeanwhileFindFaces",
+      "Effect": "Allow",
+      "Action": "rekognition:DetectFaces",
+      "Resource": "*"
+    }
+  ]
+}

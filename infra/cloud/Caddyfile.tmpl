@@ -1,0 +1,83 @@
+# Caddy config for the Meanwhile cloud box: TLS for the public hosts, the access gate and routing.
+# The gate is the core's own check (forward_auth to 127.0.0.1:8101/api/auth/check): it accepts the shared key or a
+# paired device's token, in the X-Meanwhile-Key header or the mw_key cookie, or, for /media, a signed link the core
+# handed out (the check reads the original request from X-Forwarded-Uri). Devices pair by scanning a one-time QR
+# code: /pair (the browser pairing page) and POST /api/pair (the code exchange, rate-limited by the core) are open on
+# the main host. The first device pairs with a link from infra/cloud/pair-link.sh on the box.
+# The main host serves the core (127.0.0.1:8101) plus /mcp and /voice/* on the voice server (127.0.0.1:8001);
+# alexa.<host> serves the whole voice server (home screen and simulated Alexa panel). Plain HTTP on :8100 (core) and
+# :8000 (voice) serve older app builds; the app needs only https://<host>, where the same routes live.
+# install.sh and box-update.sh replace __HOST__ with MEANWHILE_PUBLIC_HOST (the box's public host name; it and
+# alexa.<host> resolve to the box, and Caddy gets their certificates); MEANWHILE_KEY comes from /etc/meanwhile/key.env.
+
+__HOST__ {
+	@pairing path /pair /api/pair
+	handle @pairing {
+		reverse_proxy 127.0.0.1:8101
+	}
+
+	handle {
+		forward_auth 127.0.0.1:8101 {
+			uri /api/auth/check
+		}
+		handle /mcp* {
+			request_header -Origin
+			reverse_proxy 127.0.0.1:8001 {
+				header_up Host 127.0.0.1:8001
+				flush_interval -1
+			}
+		}
+		handle /voice/* {
+			reverse_proxy 127.0.0.1:8001 {
+				header_up Host 127.0.0.1:8001
+				flush_interval -1
+			}
+		}
+		handle {
+			reverse_proxy 127.0.0.1:8101 {
+				flush_interval -1
+			}
+		}
+	}
+}
+
+alexa.__HOST__ {
+	handle {
+		forward_auth 127.0.0.1:8101 {
+			uri /api/auth/check
+		}
+		request_header -Origin
+		reverse_proxy 127.0.0.1:8001 {
+			header_up Host 127.0.0.1:8001
+			flush_interval -1
+		}
+	}
+}
+
+http://:8100 {
+	handle /api/pair {
+		reverse_proxy 127.0.0.1:8101
+	}
+
+	handle {
+		forward_auth 127.0.0.1:8101 {
+			uri /api/auth/check
+		}
+		reverse_proxy 127.0.0.1:8101 {
+			flush_interval -1
+		}
+	}
+}
+
+http://:8000 {
+	handle {
+		forward_auth 127.0.0.1:8101 {
+			uri /api/auth/check
+		}
+		request_header -Origin
+		reverse_proxy 127.0.0.1:8001 {
+			header_up Host 127.0.0.1:8001
+			flush_interval -1
+		}
+	}
+}

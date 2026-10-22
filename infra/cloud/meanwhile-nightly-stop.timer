@@ -1,0 +1,9 @@
+# systemd timer: stops the box every night at 01:00 India time, in case it was left running.
+[Unit]
+Description=Nightly stop of the Meanwhile box
+
+[Timer]
+OnCalendar=*-*-* 01:00:00 Asia/Kolkata
+
+[Install]
+WantedBy=timers.target

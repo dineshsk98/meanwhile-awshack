@@ -1,0 +1,43 @@
+out/
+media/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+node_modules/
+.aws-sam/
+cdk.out/
+.venv/
+.pytest_cache/
+# recordings and photos of people never go in the public repo
+videos/
+*.mp4
+*.webm
+# local HTTPS certificates for the dev server
+*.pem
+*.key
+# local session stores and their media (backend/.data, voice/backend/.data)
+.data/
+# downloaded model weights
+weights/
+# experiments stay local
+experiments/
+# deploy scripts for the cloud box are public; settings files with real values are not (only *.example ones)
+infra/**/*.env
+# Android app: build outputs and caches, local settings, Firebase config, signing keys, packages
+android/.gradle/
+android/**/build/
+android/.kotlin/
+android/.idea/
+android/captures/
+android/local.properties
+*.iml
+google-services.json
+keystore.properties
+*.jks
+*.keystore
+*.apk
+*.aab
+.DS_Store
+architecture/*.py

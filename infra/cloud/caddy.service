@@ -1,0 +1,19 @@
+# systemd unit: Caddy, the HTTPS front of the box. It refuses to start without a key of 16+ characters,
+# because an empty key would open every route.
+[Unit]
+Description=Caddy (Meanwhile HTTPS and key gate)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=caddy
+Environment=XDG_DATA_HOME=/var/lib/caddy XDG_CONFIG_HOME=/var/lib/caddy
+EnvironmentFile=/etc/meanwhile/key.env
+ExecStartPre=/bin/sh -c 'test $${#MEANWHILE_KEY} -ge 16'
+ExecStart=/usr/local/bin/caddy run --config /etc/caddy/Caddyfile
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,74 @@
+<!doctype html>
+<!-- The home screen the voice tools drive: the session card, the alert banner, the simulated Alexa+ panel with its replay window,
+     and the "Pair a device" screen. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meanwhile</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Meanwhile</h1>
+    <ul id="cameras" class="cameras"></ul>
+    <button id="sound" class="sound" type="button"></button>
+    <button id="pair-open" class="sound pair-open" type="button">Pair a device</button>
+  </header>
+
+  <dialog id="pair-dialog" class="pair-dialog" aria-label="Pair a device">
+    <form method="dialog" class="pair-close"><button class="sound" type="submit">Close</button></form>
+    <h2>Pair a device</h2>
+    <div id="pairing"></div>
+  </dialog>
+
+  <div id="banner" class="banner" role="alert" hidden>
+    <span class="banner-title"></span>
+    <span class="banner-text"></span>
+  </div>
+
+  <p id="offline" class="offline" hidden>I can't reach the Meanwhile core.</p>
+
+  <main class="layout">
+    <section id="card" class="card">
+      <h2 id="card-heading"></h2>
+      <p id="card-said" class="said"></p>
+      <p id="card-understood" class="understood"></p>
+      <p id="card-state" class="state"></p>
+      <ol id="events" class="events"></ol>
+      <p id="card-empty" class="empty"></p>
+    </section>
+    <section id="alexa-panel" class="alexa-panel" aria-label="Alexa" data-state="idle">
+      <div class="alexa-top">
+        <button id="alexa-mic" class="alexa-ring" type="button" aria-label="Talk to Alexa"></button>
+        <p id="alexa-state" class="alexa-state"></p>
+      </div>
+      <p id="alexa-ignored" class="alexa-ignored"></p>
+      <p id="alexa-heard" class="alexa-heard"></p>
+      <p id="alexa-reply" class="alexa-reply"></p>
+      <form id="alexa-form" class="alexa-form" autocomplete="off">
+        <input id="alexa-input" type="text" aria-label="Type to Alexa">
+      </form>
+      <aside id="replay" class="replay" aria-label="Replay" hidden>
+        <button id="replay-close" class="replay-close" type="button" aria-label="Close the replay">&times;</button>
+        <video id="replay-video" muted playsinline></video>
+        <img id="replay-image" alt="What the camera sees" hidden>
+        <p id="replay-caption" class="replay-caption"></p>
+      </aside>
+      <ol id="alexa-calls" class="alexa-calls"></ol>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/alexa-panel.js"></script>
+  <script src="js/pairing.js"></script>
+  <script>
+    // The header's "Pair a device" button opens the pairing screen (QR code, paired devices) in a dialog.
+    mountPairing(document.getElementById("pairing"), "/voice");
+    document.getElementById("pair-open").addEventListener("click", () => document.getElementById("pair-dialog").showModal());
+  </script>
+</body>
+</html>

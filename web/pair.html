@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- The browser pairing page a pairing QR code opens (/pair?code=...): one tap pairs this browser, and the core sets
+     its device token as an HttpOnly cookie in that same response, with no redirect before it. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Meanwhile · pair this browser</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root { color-scheme: dark; --bg: #0d0f12; --fg: #f2f4f7; --muted: #9aa3ae; --ok: #3ecf7a; --off: #e5484d;
+      --panel: #161a1f; --line: #39404a; }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg);
+      font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 420px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 16px; }
+    label { display: block; color: var(--muted); font-size: 15px; margin-bottom: 6px; }
+    input, button { box-sizing: border-box; width: 100%; font: inherit; color: var(--fg); background: var(--panel);
+      border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    button { margin-top: 12px; background: #24427a; border-color: #24427a; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .ok { color: var(--ok); } .err { color: var(--off); } .muted { color: var(--muted); font-size: 15px; }
+    nav a { display: block; margin: 10px 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+      color: var(--fg); text-decoration: none; background: var(--panel); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Pair this browser with Meanwhile</h1>
+  <form id="form" hidden>
+    <label for="name">Name this device</label>
+    <input id="name" maxlength="60" autocomplete="off" required>
+    <button id="pair" type="submit">Pair this browser</button>
+  </form>
+  <p id="note" class="muted"></p>
+  <nav id="done" hidden>
+    <a href="/camera">Open the camera page</a>
+    <a href="/debug.html">Open the debug page</a>
+  </nav>
+</main>
+<script>
+// Read the one-time code, take it out of the address bar and history, then pair on one tap.
+const code = new URLSearchParams(location.search).get("code");
+history.replaceState(null, "", location.pathname);
+const note = document.getElementById("note");
+const form = document.getElementById("form");
+
+/** A readable guess at this device's name from the browser, e.g. "Android phone · Chrome". */
+function guessName() {
+  const ua = navigator.userAgent;
+  const device = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua)
+    ? (/Mobile/.test(ua) ? "Android phone" : "Android tablet") : /Windows/.test(ua) ? "Windows PC"
+    : /Mac OS X/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux PC" : "Browser";
+  const browser = /Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet"
+    : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Chrome|CriOS/.test(ua) ? "Chrome" : /Safari/.test(ua) ? "Safari" : "";
+  return browser ? `${device} · ${browser}` : device;
+}
+
+/** Show a line under the form, as an error or a plain note. */
+function say(text, kind) {
+  note.textContent = text;
+  note.className = kind || "muted";
+}
+
+if (!code) {
+  say("This link has no pairing code. On a paired device, open Pair a device and scan its QR code.", "err");
+} else {
+  document.getElementById("name").value = guessName();
+  form.hidden = false;
+  if (!window.isSecureContext) say("This page isn't on HTTPS, so the browser may refuse to stay paired.", "err");
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const button = document.getElementById("pair");
+  button.disabled = true;
+  say("Pairing…");
+  try {
+    const reply = await fetch("/api/pair", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, device_name: document.getElementById("name").value.trim(), browser: true }),
+    });
+    const body = await reply.json().catch(() => ({}));
+    if (!reply.ok) {
+      say(body.message || `Pairing failed (${reply.status}).`, "err");
+      button.disabled = reply.status === 403;
+      return;
+    }
+    form.hidden = true;
+    say(`This browser is paired as “${body.name}”. You can close this page or open one below.`, "ok");
+    document.getElementById("done").hidden = false;
+  } catch (err) {
+    say("Can't reach Meanwhile. Check the connection and tap again.", "err");
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

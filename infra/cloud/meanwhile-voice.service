@@ -1,0 +1,20 @@
+# systemd unit: the Meanwhile voice side (/mcp, /voice/*, the simulated Alexa) on 127.0.0.1:MEANWHILE_VOICE_PORT from voice.env (Caddy serves it publicly).
+# It reaches the core with the same shared key, passed as MEANWHILE_CORE_KEY.
+[Unit]
+Description=Meanwhile voice and MCP server
+After=network-online.target meanwhile-core.service
+Wants=network-online.target
+
+[Service]
+# Write print() lines to the journal at once instead of buffering them
+Environment=PYTHONUNBUFFERED=1
+User=ubuntu
+WorkingDirectory=/home/ubuntu/meanwhile/voice/backend
+EnvironmentFile=/etc/meanwhile/key.env
+EnvironmentFile=/etc/meanwhile/voice.env
+ExecStart=/usr/bin/env MEANWHILE_CORE_KEY=${MEANWHILE_KEY} /home/ubuntu/meanwhile/voice/.venv/bin/python -m meanwhile.voice.devserver
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

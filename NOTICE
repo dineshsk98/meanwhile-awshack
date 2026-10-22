@@ -1,0 +1,26 @@
+Meanwhile
+Copyright (C) 2026 Dinesh Kumar Saravanan
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the LICENSE file for the full text.
+
+Third-party software and models
+-------------------------------
+None of these are copied into this repository; they are installed from requirements.txt or downloaded at run time,
+each under its own licence:
+
+- Ultralytics (YOLOE detector and ByteTrack tracker): AGPL-3.0.
+- Ultralytics' CLIP fork (YOLOE's text tokenizer, installed from GitHub): AGPL-3.0.
+- YOLOE weights (yoloe-26m-seg.pt): published by Ultralytics under AGPL-3.0.
+- MobileCLIP2 text encoder (mobileclip2_b.ts, used by YOLOE): published by Apple under its own model licence; check
+  it before any commercial use.
+- Qwen models (qwen3.5:4b through Ollama; Qwen3-VL-8B on Amazon SageMaker): Apache-2.0, per their model cards.
+- segno (QR codes for device pairing): BSD-3-Clause.
+- aiortc (WebRTC): BSD-3-Clause.
+- lap (linear assignment for ByteTrack): BSD-2-Clause.
+- MCP Python SDK (the voice side's MCP server): MIT.
+- Android app (fetched by Gradle): AndroidX and Jetpack Compose, Media3, Kotlin coroutines and serialization, OkHttp,
+  Retrofit, Coil, ZXing core and stream-webrtc-android: Apache-2.0. Firebase Cloud Messaging and ML Kit barcode
+  scanning: Google's terms for those SDKs.

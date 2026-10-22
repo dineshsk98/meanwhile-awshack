@@ -1,0 +1,202 @@
+/* The home screen's look: dark background, large alert text, one accent per alert (amber, green, red). */
+
+:root {
+  --bg: #111315;
+  --panel: #1b1e21;
+  --line: #2c3035;
+  --text: #eef0f2;
+  --muted: #9aa1a8;
+  --amber: #f5a524;
+  --green: #2fbf71;
+  --red: #e5484d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.top h1 { margin: 0; font-size: 22px; font-weight: 600; }
+
+.cameras { display: flex; gap: 16px; margin: 0; padding: 0; list-style: none; color: var(--muted); }
+.cameras li::before { content: "\25CF"; margin-right: 6px; color: var(--muted); }
+.cameras li.online { color: var(--text); }
+.cameras li.online::before { color: var(--green); }
+
+.sound {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.sound.on { color: var(--muted); cursor: default; }
+
+.banner {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 22px 28px;
+  color: #111;
+  font-size: 34px;
+  font-weight: 600;
+}
+.banner[hidden] { display: none; }
+.banner.amber { background: var(--amber); }
+.banner.green { background: var(--green); }
+.banner.red { background: var(--red); color: #fff; }
+.banner-title { font-size: 20px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; }
+
+.offline { margin: 0; padding: 10px 28px; background: var(--panel); color: var(--muted); }
+.offline[hidden] { display: none; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 28px;
+  padding: 28px;
+}
+
+.card { max-width: 900px; }
+.card h2 { margin: 0 0 12px; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.said { margin: 0 0 6px; font-size: 28px; }
+.understood { margin: 0 0 18px; color: var(--muted); }
+.state { margin: 0 0 22px; font-size: 24px; font-weight: 600; }
+.said:empty, .understood:empty, .state:empty, .empty:empty { display: none; }
+
+.events { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.events li {
+  display: grid;
+  grid-template-columns: 90px 70px 1fr;
+  gap: 12px;
+  padding: 10px 0 10px 12px;
+  border-bottom: 1px solid var(--line);
+  border-left: 4px solid transparent;
+}
+.events .time, .events .camera { color: var(--muted); }
+.events li.amber { border-left-color: var(--amber); }
+.events li.green { border-left-color: var(--green); }
+.events li.red { border-left-color: var(--red); }
+.events li.playing { background: var(--panel); }
+.empty { color: var(--muted); }
+
+.sound.problem { border-color: var(--amber); color: var(--amber); }
+
+.alexa-panel {
+  --ring: #00caff;
+  align-self: start;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.alexa-top { display: flex; align-items: center; gap: 16px; }
+.alexa-ring {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border: 5px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.alexa-panel[data-state="listening"] .alexa-ring { border-color: var(--ring); box-shadow: 0 0 18px var(--ring); }
+.alexa-panel[data-state="thinking"] .alexa-ring { border-color: var(--ring); animation: spin-glow 1s linear infinite; }
+.alexa-panel[data-state="speaking"] .alexa-ring { border-color: var(--ring); animation: pulse 0.8s ease-in-out infinite alternate; }
+@keyframes spin-glow { from { box-shadow: -6px 0 14px var(--ring); } to { box-shadow: 6px 0 14px var(--ring); } }
+@keyframes pulse { from { box-shadow: 0 0 6px var(--ring); } to { box-shadow: 0 0 24px var(--ring); } }
+.alexa-state { margin: 0; font-size: 20px; }
+.alexa-heard { margin: 16px 0 6px; color: var(--muted); }
+.alexa-reply { margin: 0 0 16px; font-size: 20px; }
+.alexa-ignored { margin: 10px 0 0; font-size: 14px; color: var(--muted); opacity: 0.7; font-style: italic; }
+.alexa-heard:empty, .alexa-reply:empty, .alexa-ignored:empty { display: none; }
+.alexa-form input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+.alexa-calls { margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; }
+.alexa-calls li { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--line); }
+.alexa-calls code { color: var(--ring); word-break: break-word; }
+.alexa-calls li.failed code { color: var(--red); }
+.alexa-calls .meta { color: var(--muted); }
+
+.replay {
+  position: relative;
+  margin: 16px 0 0;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.replay[hidden] { display: none; }
+.replay video, .replay img { display: block; width: 100%; max-height: min(42vh, 330px); object-fit: contain; }
+.replay-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(17, 19, 21, 0.85);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.replay [hidden] { display: none; }
+.replay-caption { margin: 0; padding: 8px 12px; font-size: 15px; color: var(--muted); background: var(--panel); }
+
+/* The "Pair a device" button and its dialog (QR code, paired devices). */
+.pair-open { margin-left: 0; }
+.pair-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 20px 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+}
+.pair-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.pair-dialog h2 { margin: 0 0 12px; font-size: 20px; }
+.pair-dialog .pair-close { float: right; }
+.pair-dialog button {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; padding: 16px; }
+  .top { flex-wrap: wrap; padding: 12px 16px; }
+  .banner { font-size: 24px; padding: 16px; }
+  .replay video, .replay img { max-height: 32vh; }
+}

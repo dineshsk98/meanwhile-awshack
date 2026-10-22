@@ -1,0 +1,7 @@
+# systemd unit run by the nightly timer: shuts the instance down, which stops it (the instance's shutdown behaviour is stop).
+[Unit]
+Description=Stop the Meanwhile box
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/shutdown -h now

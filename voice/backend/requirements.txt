@@ -1,0 +1,6 @@
+mcp==2.3.0          # official MCP Python SDK: MCPServer over Streamable HTTP
+uvicorn>=0.54
+httpx>=0.28
+pytest>=9.1
+python-dotenv>=1.0
+tzdata>=2024.1      # IANA time zones for zoneinfo on Windows (Linux has its own)

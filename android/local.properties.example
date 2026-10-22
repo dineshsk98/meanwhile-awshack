@@ -1,0 +1,22 @@
+# Copy to local.properties (git-ignored) and fill in.
+
+# Android SDK location; Android Studio writes this line for you.
+sdk.dir=/path/to/Android/Sdk
+
+# The hub the app first connects to; pairing by QR code replaces it.
+# A host name (the cloud box) is one HTTPS origin, https://<host> on port 443, for both the core and the voice side;
+# the ports below are not used for it.
+# A LAN IP address or localhost (the laptop running the core, for development) uses plain HTTP on the two ports below,
+# which only debug builds allow.
+meanwhile.hub=<hub-host-or-lan-ip>
+
+# The core's port for a LAN IP address.
+meanwhile.corePort=8100
+
+# The voice side's port for a LAN IP address.
+meanwhile.voicePort=8000
+
+# The word that starts a spoken request while the app is open, e.g. "Alexa, I'm stepping away, watch my bag".
+meanwhile.wakeWord=Alexa
+
+# The access key is never stored here or built into the app; pairing gives the app its own token.

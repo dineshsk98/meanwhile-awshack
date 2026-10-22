@@ -1,0 +1,23 @@
+# Built binaries and Gradle caches
+.gradle/
+build/
+app/build/
+
+# Local configuration and secret keys (NEVER commit these)
+local.properties
+app/google-services.json
+*.jks
+*.keystore
+keystore.properties
+
+# IDE & Editor files
+.idea/
+.kotlin/
+*.iml
+captures/
+.DS_Store
+
+# Android package outputs
+*.apk
+*.aab
+

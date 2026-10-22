@@ -1,0 +1,19 @@
+# systemd unit: the Meanwhile core (API, camera pages, media, live ingest, detector, analyser) on 127.0.0.1:MEANWHILE_PORT from core.env (Caddy serves it publicly).
+[Unit]
+Description=Meanwhile core
+After=network-online.target ollama.service
+Wants=network-online.target ollama.service
+
+[Service]
+# Write print() lines to the journal at once instead of buffering them
+Environment=PYTHONUNBUFFERED=1
+User=ubuntu
+WorkingDirectory=/home/ubuntu/meanwhile/backend
+EnvironmentFile=/etc/meanwhile/key.env
+EnvironmentFile=/etc/meanwhile/core.env
+ExecStart=/home/ubuntu/meanwhile/.venv/bin/python -m local.devserver
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
