@@ -47,6 +47,19 @@ def test_code_shape_and_link(client, monkeypatch):
     assert new_code(client)["pair_url"].startswith("https://box.example.test/pair?code=")
 
 
+@pytest.mark.parametrize("page", ["http://127.0.0.1:8100", "http://localhost:8100"])
+def test_a_code_made_on_this_computer_links_to_the_lan_address(store, page):
+    """With --lan, a code made from a page on this computer links to the HTTPS LAN address phones can reach; a
+    page opened at the LAN address keeps its own; without --lan the request's address is used."""
+    lan = TestClient(build_app(store, api_key=FAKE_KEY, lan_url="https://192.0.2.7:8443"), base_url=page)
+    assert lan.post("/api/pairing-codes", headers=KEY).json()["pair_url"].startswith("https://192.0.2.7:8443/pair?code=")
+    remote = TestClient(build_app(store, api_key=FAKE_KEY, lan_url="https://192.0.2.7:8443"),
+                        base_url="https://192.0.2.7:8443")
+    assert remote.post("/api/pairing-codes", headers=KEY).json()["pair_url"].startswith("https://192.0.2.7:8443/pair")
+    local = TestClient(build_app(store, api_key=FAKE_KEY), base_url=page)
+    assert local.post("/api/pairing-codes", headers=KEY).json()["pair_url"].startswith(f"{page}/pair?code=")
+
+
 def test_making_a_code_needs_the_key_or_a_device(client):
     """Without credentials, no code; a paired device may make one."""
     assert client.post("/api/pairing-codes").status_code == 401

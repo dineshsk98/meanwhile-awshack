@@ -86,6 +86,20 @@ def test_without_a_face_nobody_is_named_and_clothes_never_name_anyone(store, mod
     assert looking.NOBODY in model.prompts[0] and "clothes" in model.prompts[0]
     assert 'never assume a person is the user' in model.prompts[0]
     assert "red shirt" not in model.prompts[0] and "Ravi" not in model.prompts[0]
+    assert "but I can't see their face, so I can't tell if it's you" in model.prompts[0]
+    assert looking.FACE_ID_OFF not in model.prompts[0]
+
+
+def test_with_face_id_off_the_prompt_says_so_instead_of_blaming_the_face(store, model):
+    """Face ID off: the prompt says nobody can be recognised by face, and the example reply gives that as the reason,
+    not an unseen face."""
+    owner(store)
+    camera_with_thumb(store, "Desk", 1)
+    status, _ = look.look(store, {"question": "do you see me?", "camera": "desk"}, None)
+    assert status == 200
+    assert looking.FACE_ID_OFF in model.prompts[0] and looking.NOBODY not in model.prompts[0]
+    assert "but face ID is off, so I can't tell if it's you" in model.prompts[0]
+    assert "can't see their face" not in model.prompts[0]
 
 
 def test_strangers_and_unnamed_people_are_described_by_face_only(store, model, monkeypatch):

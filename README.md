@@ -33,22 +33,31 @@ Everything that works today, and how each piece was verified: [SCENARIOS.md](SCE
 The tools are listed in [voice/README.md](voice/README.md).
 
 ## Prerequisites
-- Windows 10/11 with PowerShell (on Linux, use `.venv/bin/python` for `.venv\Scripts\python` and start the two
-  servers by hand).
+- Windows 10/11 with PowerShell. The local setup and `start-local.ps1` are tested on Windows only, and every command
+  below is for Windows. Linux and macOS are untested: there, use `.venv/bin/python` for `.venv\Scripts\python` and
+  start the two servers by hand.
 - An NVIDIA GPU with at least 6 GB of memory and a current driver.
 - Python 3.11 and Git.
 - [Ollama](https://ollama.com), running.
 - Chrome (speech on the home screen, and the camera pages).
+- Optional: [Node.js](https://nodejs.org) for the MCP Inspector (`npx`).
 - Optional: an AWS account with Amazon Rekognition for face ID; Android Studio and a Firebase project for the app.
 
 ## Run locally
+**Local mode is for trying it out.** It runs a small vision model (qwen3.5:4b) on the laptop's GPU; its answers are
+noticeably weaker (it can repeat itself or answer about only one camera), and a laptop GPU runs hot under continuous
+video. The full experience, and the demo video, run on AWS with Qwen3-VL-8B on a SageMaker endpoint
+([Set up and run on AWS](#set-up-and-run-on-aws)).
+
 **Once**, from the repo root:
-1. Create the two virtualenvs. Install the CUDA build of PyTorch first (pip's default wheel on Windows is CPU-only):
+1. Create the two virtualenvs and upgrade pip in each (an older pip can't install from the PyTorch index). Install
+   the CUDA build of PyTorch first (pip's default wheel on Windows is CPU-only):
    ```powershell
-   python -m venv .venv
+   python -m venv .venv; .venv\Scripts\python -m pip install --upgrade pip
    .venv\Scripts\python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
    .venv\Scripts\python -m pip install -r requirements.txt
-   python -m venv voice\.venv; voice\.venv\Scripts\python -m pip install -r voice\backend\requirements.txt
+   python -m venv voice\.venv; voice\.venv\Scripts\python -m pip install --upgrade pip
+   voice\.venv\Scripts\python -m pip install -r voice\backend\requirements.txt
    ```
 2. Copy `.env.example` to `.env` and `voice\.env.example` to `voice\.env`. Then put the same random key into both
    (the core won't start without one; this doesn't print it):
@@ -87,10 +96,14 @@ cd voice\backend; ..\.venv\Scripts\python -m meanwhile.voice.devserver
 | Laptop camera | `http://127.0.0.1:8100/camera?label=Desk` |
 | Phone cameras | `https://<laptop-ip>:8443/camera?label=<name>` (the `Phones:` line the core prints) |
 
-**Phone cameras:** on the debug page, **Pair a device** shows a one-time QR code. Scan it with the phone, press
-**Pair**, then open the phone camera link above and allow the camera. The phone shows a certificate warning once
-(the core makes a self-signed certificate with `--lan`). The laptop's Wi-Fi must be a Private network, with Python
-allowed through Windows Firewall.
+**Phone cameras:** the phone and the laptop must be on the same Wi-Fi, set to a Private network on the laptop, with
+Python allowed through Windows Firewall.
+1. On the phone, open **Chrome** at `https://<laptop-ip>:8443/camera` (the `Phones:` line the core prints). The core
+   uses a self-signed certificate, so Chrome warns once: tap **Advanced**, then **Proceed**.
+2. On the laptop's debug page, **Pair a device** shows a one-time QR code (its link is the phone address above).
+   Scan it, and open the link in **Chrome**: a scanner's own viewer (Google Lens, the camera app) may not let you
+   past the certificate warning. Press **Pair**.
+3. Open `https://<laptop-ip>:8443/camera?label=<name>` in Chrome and allow the camera.
 
 **Without a camera:** `/camera?label=Desk&test-video=/media/test/clip.mp4` plays a looping video file as the camera
 (put it in `backend\.data\media\test\`).

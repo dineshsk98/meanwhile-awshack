@@ -40,7 +40,7 @@ LOOK_PROMPT = (
     "- Only the faces listed above are known. Say \"you\" for a person only in a photo that lists \"you, the "
     "user\"; never assume a person is the user. Anyone else is \"someone\": never say who a person is from their "
     "clothes, hair or body. For example, if the user asks \"do you see me?\" and a person is there but \"you, the "
-    "user\" isn't listed, say: \"I can see someone on the {label} camera, but I can't see their face, so I can't tell "
+    "user\" isn't listed, say: \"I can see someone on the {label} camera, but {unknown_reason}, so I can't tell "
     "if it's you.\"\n"
     "- Say what people do and what happens to things. Unless the question itself is about clothing or appearance, "
     "never mention clothing, body, state of dress or appearance (\"shirtless\", \"a red t-shirt\", \"a "
@@ -52,6 +52,9 @@ LOOK_PROMPT = (
 PHOTO_LINE = "Photo {n} is from the \"{label}\" camera."
 PEOPLE_LINE = "- Photo {n} (\"{label}\"): {people}"
 NOBODY = "no face recognised"
+FACE_ID_OFF = "- None: face ID is off, so nobody can be recognised by face, even when their face is in full view."
+UNSEEN_FACE = "I can't see their face"
+NO_FACE_ID = "face ID is off"
 OWNER = "you, the user"
 STRANGER = "someone whose face I don't recognise"
 SIDES = ("on the left", "in the middle", "on the right")
@@ -103,12 +106,21 @@ def faces_in(faces: Faces | None, store: Store, frame: Frame) -> list[Seen]:
         return []
 
 
-def prompt(question: str, frames: list[Frame], seen: dict[str, list[Seen]], people: dict[str, Person]) -> str:
-    """The look prompt for these frames, in order, with the faces recognised in each."""
+def people_lines(frames: list[Frame], seen: list[list[Seen]], people: dict[str, Person], face_id: bool) -> str:
+    """The prompt's list of faces recognised per photo, or one line saying face ID is off."""
+    if not face_id:
+        return FACE_ID_OFF
+    return "\n".join(PEOPLE_LINE.format(n=n, label=f["label"], people=face_words(s, people))
+                     for n, (f, s) in enumerate(zip(frames, seen), 1))
+
+
+def prompt(question: str, frames: list[Frame], seen: dict[str, list[Seen]], people: dict[str, Person],
+           face_id: bool) -> str:
+    """The look prompt for these frames, in order, with the faces recognised in each (or that face ID is off)."""
     photos = " ".join(PHOTO_LINE.format(n=n, label=f["label"]) for n, f in enumerate(frames, 1))
-    lines = "\n".join(PEOPLE_LINE.format(n=n, label=f["label"], people=face_words(seen[f["camera_id"]], people))
-                      for n, f in enumerate(frames, 1))
-    return LOOK_PROMPT.format(photos=photos, people=lines, question=question.strip(), label=frames[0]["label"])
+    lines = people_lines(frames, [seen[f["camera_id"]] for f in frames], people, face_id)
+    return LOOK_PROMPT.format(photos=photos, people=lines, question=question.strip(), label=frames[0]["label"],
+                              unknown_reason=UNSEEN_FACE if face_id else NO_FACE_ID)
 
 
 def chosen_camera(said: str, frames: list[Frame], seen: dict[str, list[Seen]]) -> Frame:
@@ -143,7 +155,8 @@ def answer(question: str, frames: list[Frame], faces: Faces | None, store: Store
     people = {p["person_id"]: p for p in store.list_people()}
     faces_s = time.perf_counter() - start
     images = [vision.crop(f["jpeg"], [0.0, 0.0, 1.0, 1.0]) or f["jpeg"] for f in frames]
-    reply = models.ask([{"role": "user", "content": prompt(question, frames, seen, people), "images": images}],
+    reply = models.ask([{"role": "user", "content": prompt(question, frames, seen, people, faces is not None),
+                         "images": images}],
                        LOOK_SCHEMA, model or config.VISION_MODEL)
     text, dropped = plain(" ".join(str(reply.get("answer") or "").split()), question)
     if not text:

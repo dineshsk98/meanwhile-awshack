@@ -35,6 +35,8 @@ from meanwhile.pipeline.ingest import Ingest
 from meanwhile.store import Store, get_store, to_iso
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+# Host names that mean this computer, which a phone can't reach
+LOOPBACK = {"127.0.0.1", "localhost", "::1"}
 RECENT_UPLOADS = 20
 
 
@@ -101,10 +103,11 @@ def warm_up(store: Store) -> None:
 def build_app(store: Store | None = None, compile_order: sessions.Compiler | None = None,
               analyser: Analyser | None = None, api_key: str | None = None,
               pusher: push_module.Push | None = None, ingest: Ingest | None = None,
-              faces: Faces | None = None) -> auth.KeyGate:
+              faces: Faces | None = None, lan_url: str = "") -> auth.KeyGate:
     """Build the dev server app over the given store (default: backend/.data), watch-order compiler and
     analyser (uploads are analysed only when one is given), and face client for people's photos (default: the
-    configured one, none when face ID is off). Every /api route except pairing requires api_key (default:
+    configured one, none when face ID is off). lan_url is the HTTPS address phones reach the core at (with --lan);
+    pairing links made from a page on this computer point there. Every /api route except pairing requires api_key (default:
     MEANWHILE_KEY; an empty key is refused) or a paired device's token, in the header or the cookie; /media files
     need the same or a signed link."""
     store = store or get_store()
@@ -290,8 +293,10 @@ def build_app(store: Store | None = None, compile_order: sessions.Compiler | Non
         return reply(await run_in_threadpool(people.remove, store, request.path_params["person_id"], faces))
 
     async def create_pairing_code(request: Request) -> JSONResponse:
-        """POST /api/pairing-codes (the link uses MEANWHILE_PUBLIC_URL, else this request's own address)."""
-        base = config.PUBLIC_URL or str(request.base_url).rstrip("/")
+        """POST /api/pairing-codes (the link uses MEANWHILE_PUBLIC_URL, else lan_url when the request comes from
+        this computer, else this request's own address)."""
+        loopback = request.url.hostname in LOOPBACK
+        base = config.PUBLIC_URL or (lan_url if lan_url and loopback else str(request.base_url).rstrip("/"))
         return reply(pairing.create_code(store, base, config.PAIR_CODE_TTL_S))
 
     async def pair_device(request: Request) -> JSONResponse:
@@ -460,7 +465,9 @@ def main() -> None:
     ingest = Ingest(store, analyser.lock)
     if ingest.tracking == "detector":
         analyser.gate = ingest.heads_up_gate
-    app = build_app(store, analyser=analyser, pusher=pusher, ingest=ingest)
+    ip = lan_ip() if args.lan else ""
+    app = build_app(store, analyser=analyser, pusher=pusher, ingest=ingest,
+                    lan_url=f"https://{ip}:{args.lan_port}" if ip else "")
     configs = [uvicorn.Config(app, host="0.0.0.0" if args.lan else "127.0.0.1", port=args.port, log_level="warning")]
     print(f"Laptop:  http://localhost:{args.port}/debug.html  |  camera: http://localhost:{args.port}/camera")
     print(f"Push:    {'on (FCM)' if pusher else 'off (no MEANWHILE_FCM_SERVICE_ACCOUNT file)'}  |  API key: required")
@@ -468,7 +475,6 @@ def main() -> None:
                                             f"model checks {'on' if config.CHECKS else 'off'})"
                                             if config.TRACKING == "detector" else " (a vision-model check per frame)"))
     if args.lan:
-        ip = lan_ip()
         print(f"Phone app: http://{ip}:{args.port}  (the core API on the home network)")
         cert, key = ensure_cert(store.data_dir / "certs", ip)
         configs.append(uvicorn.Config(app, host="0.0.0.0", port=args.lan_port, log_level="warning",

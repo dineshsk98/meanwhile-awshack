@@ -106,7 +106,8 @@ Write-Host "Starting the core (window 'Meanwhile core')..." -ForegroundColor Cya
 Start-Window "Meanwhile core" (Join-Path $CoreDir "backend") "..\.venv\Scripts\python.exe -m local.devserver --lan"
 Wait-Url "$CoreUrl/api/cameras" 240 "The core" $KeyHeader
 Write-Host "  The core answers on $CoreUrl"
-$PairUrl = (Invoke-RestMethod -Method Post -Uri "$CoreUrl/api/pairing-codes" -Headers $KeyHeader -TimeoutSec 5).pair_url
+$PairCode = (Invoke-RestMethod -Method Post -Uri "$CoreUrl/api/pairing-codes" -Headers $KeyHeader -TimeoutSec 5).code
+$PairUrl = "$CoreUrl/pair?code=$PairCode"
 
 Write-Host "Starting the voice side (window 'Meanwhile voice')..." -ForegroundColor Cyan
 $voiceCommand = "..\.venv\Scripts\python.exe -m meanwhile.voice.devserver --lan"
@@ -139,7 +140,7 @@ Write-Host ""
 Write-Host "Ready." -ForegroundColor Green
 Write-Host "  Home screen + Alexa panel : $VoiceUrl   (press Start, allow the microphone)"
 Write-Host "  Laptop camera             : $CoreUrl/camera?label=Desk   (allow the camera)"
-Write-Host "  Phone cameras             : the 'Phones:' line in the 'Meanwhile core' window"
+Write-Host "  Phone cameras             : the 'Phones:' line in the 'Meanwhile core' window (pair with Pair a device on the debug page)"
 Write-Host "  People (name, role, shirt): $CoreUrl/debug.html"
 Write-Host ""
 Write-Host "Before the scenario:" -ForegroundColor Cyan

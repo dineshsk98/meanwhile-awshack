@@ -166,6 +166,18 @@ def test_the_prompt_never_names_people_by_clothes(store, model):
     camera_with_window(store, "Desk", [10.0])
     look.look_back(store, {"question": "did anyone come in?"}, faces_with(StubRekognition(found=[[]])))
     assert looking.NOBODY in model.prompts[0] and "clothes" in model.prompts[0] and "red shirt" not in model.prompts[0]
+    assert "but I couldn't see their face" in model.prompts[0] and looking.FACE_ID_OFF not in model.prompts[0]
+
+
+def test_with_face_id_off_the_look_back_prompt_says_so(store, model):
+    """Face ID off: the look-back prompt says nobody can be recognised by face, and its example gives that as the
+    reason, not an unseen face."""
+    camera_with_window(store, "Desk", [20.0, 10.0])
+    status, _ = look.look_back(store, {"question": "did anyone come in?"}, None)
+    assert status == 200
+    assert looking.FACE_ID_OFF in model.prompts[0] and looking.NOBODY not in model.prompts[0]
+    assert "but face ID is off, so I can't tell who it was" in model.prompts[0]
+    assert "couldn't see their face" not in model.prompts[0]
 
 
 def test_look_back_tells_what_was_done_not_what_people_wore(store, model):

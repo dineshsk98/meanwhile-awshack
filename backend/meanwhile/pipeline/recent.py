@@ -118,7 +118,7 @@ LOOK_BACK_PROMPT = (
     "- Only the faces listed above are known. Say \"you\" for a person only in a photo that lists \"you, the "
     "user\"; never assume a person is the user. Anyone else is \"someone\": never say who a person is from their "
     "clothes, hair or body. If nobody's face is recognised, say \"someone\", e.g. \"In the last {window}, someone "
-    "sat down at the desk on the {label} camera, but I couldn't see their face.\"\n"
+    "sat down at the desk on the {label} camera, but {unknown_reason}.\"\n"
     "- Say what people do and what happens to things. Unless the question itself is about clothing or appearance, "
     "never mention clothing, body, state of dress or appearance (\"shirtless\", \"a red t-shirt\", \"a "
     "necklace\"). When it is (\"what am I wearing?\"), describe what they wear plainly.\n"
@@ -127,6 +127,8 @@ LOOK_BACK_PROMPT = (
     "mentions photos, frames or their numbers."
 )
 PHOTO_LINE = "Photo {n}: the \"{label}\" camera, {ago}."
+UNSEEN_FACE = "I couldn't see their face"
+NO_FACE_ID = "face ID is off, so I can't tell who it was"
 LOOK_BACK_SCHEMA = {
     "type": "object",
     "properties": {"answer": {"type": "string"}, "asks_earlier": {"type": "boolean"}, "frame": {"type": "integer"}},
@@ -149,10 +151,10 @@ def answer(question: str, chosen: list[looking.Frame], faces: Any, store: Store,
     faces_s = time.perf_counter() - start
     window = window_words()
     photos = "\n".join(PHOTO_LINE.format(n=n, label=f["label"], ago=ago(f["at"], at)) for n, f in enumerate(chosen, 1))
-    lines = "\n".join(looking.PEOPLE_LINE.format(n=n, label=f["label"], people=looking.face_words(s, people))
-                      for n, (f, s) in enumerate(zip(chosen, seen), 1))
+    lines = looking.people_lines(chosen, seen, people, faces is not None)
     text = LOOK_BACK_PROMPT.format(n=len(chosen), window=window, photos=photos, people=lines,
-                                   question=question.strip(), label=chosen[-1]["label"])
+                                   question=question.strip(), label=chosen[-1]["label"],
+                                   unknown_reason=UNSEEN_FACE if faces is not None else NO_FACE_ID)
     images = [vision.crop(f["jpeg"], [0.0, 0.0, 1.0, 1.0]) or f["jpeg"] for f in chosen]
     reply = models.ask([{"role": "user", "content": text, "images": images}], LOOK_BACK_SCHEMA,
                        model or config.VIDEO_MODEL)
