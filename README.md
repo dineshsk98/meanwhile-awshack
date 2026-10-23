@@ -8,6 +8,8 @@ This submission is the first step: connect any number of cameras with no setup f
 
 Built for the Amazon "Build, Ship, Shape" Developer Hackathon (Alexa+ track, AWS Builder mini challenge).
 
+**Demo video:** https://youtu.be/YYMaJVq96N0
+
 ```powershell
 git clone https://github.com/dineshsk98/meanwhile-awshack.git  
 ```
@@ -27,6 +29,7 @@ start-local.ps1   starts everything on a Windows laptop
 ```
 How the pieces fit together today, and a plan for running it for many homes: [ARCHITECTURE.md](ARCHITECTURE.md).
 Everything that works today, and how each piece was verified: [SCENARIOS.md](SCENARIOS.md).
+Problems hit with Amazon and AWS tools while building it, with workarounds and suggestions: [FRICTION-LOG.md](FRICTION-LOG.md).
 
 **MCP server (Alexa+):** `/mcp` on the voice side, over Streamable HTTP, built on the official MCP Python SDK
 (`mcp` 2.3.0), which implements MCP spec 2025-11-25 (and negotiates older clients' versions, such as `2025-03-26`).
@@ -232,9 +235,8 @@ stops the instance) every night at 01:00 India time. Start it again in the conso
 **Costs** (on-demand, ap-south-1): g4dn.xlarge about $0.58 per hour while running; ml.g6.xlarge about $1.35 per hour
 while the endpoint exists; plus the disk and the Elastic IP. Stop the instance in the console when you're done.
 
-**The project's own hub** is kept stopped to save cost and started on demand, and its SageMaker endpoint is not kept
-running. To try the AWS path, set it up in your own account as above, or open a GitHub issue asking for the project's
-hub to be started.
+**The project's own hub and SageMaker endpoint are not kept running.** To try the AWS path, set it up in your own
+account as above.
 
 **Teardown:** `.venv\Scripts\python infra\sagemaker\delete.py` (the endpoint and its config), then in the console:
 terminate the instance, release the Elastic IP, delete the security group, the key pair, the two IAM roles, the
