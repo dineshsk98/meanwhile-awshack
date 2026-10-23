@@ -240,6 +240,14 @@ hub to be started.
 terminate the instance, release the Elastic IP, delete the security group, the key pair, the two IAM roles, the
 SageMaker model and the collection (`aws rekognition delete-collection --collection-id <collection>`).
 
+## Known gaps
+- **Devices don't share the Alexa conversation.** Sessions, events and verdicts are shared: a session ended by
+  voice on the laptop shows as ended in the phone app too. But the conversation itself (what was asked and Alexa's
+  replies) stays on the device it happened on, so with the phone app and the laptop's Alexa panel open at the same
+  time, the phone doesn't show a conversation held on the laptop. Meanwhile is meant to be used from the phone; the
+  conversation should still be shared across every device on the same hub.
+- **Face ID is tested with the owner and one person added from the app**, both recognised. Unregistered people
+  (shown as "Person N") and partly covered faces (masks, side views) are not recognized.
 ## Configuration
 Every setting is in an `.env.example`, with what it means; every name must be present in the copy:
 - `.env.example`: the core, plus the laptop's deploy and SageMaker settings (copy to `.env`).
